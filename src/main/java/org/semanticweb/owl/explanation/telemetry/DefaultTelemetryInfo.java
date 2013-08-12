@@ -1,0 +1,86 @@
+package org.semanticweb.owl.explanation.telemetry;
+
+import java.util.Arrays;
+import java.util.List;
+/*
+ * Copyright (C) 2010, University of Manchester
+ *
+ * Modifications to the initial code base are copyright of their
+ * respective authors, or their employers as appropriate.  Authorship
+ * of the modifications may be determined from the ChangeLog placed at
+ * the end of this file.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+/**
+ * Author: Matthew Horridge<br>
+ * The University of Manchester<br>
+ * Information Management Group<br>
+ * Date: 14-Mar-2010
+ */
+public class DefaultTelemetryInfo implements TelemetryInfo {
+
+    private long id = System.nanoTime();
+
+    private String name;
+
+    private List<TelemetryTimer> telemetryTimers;
+
+    private boolean autoFlush;
+
+    public DefaultTelemetryInfo(String name, boolean autoFlush, TelemetryTimer ... telemetryTimers) {
+        this.name = name;
+        this.autoFlush = autoFlush;
+        this.telemetryTimers = Arrays.asList(telemetryTimers);
+    }
+
+    public DefaultTelemetryInfo(String name, TelemetryTimer ... telemetryTimers) {
+        this(name, true, telemetryTimers);
+    }
+
+    public boolean isAutoFlush() {
+        return autoFlush;
+    }
+
+    public long getID() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<TelemetryTimer> getTimers() {
+        return telemetryTimers;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == this) {
+            return true;
+        }
+        if(!(obj instanceof TelemetryInfo)) {
+            return false;
+        }
+        TelemetryInfo other = (TelemetryInfo) obj;
+        return this.id == other.getID() && this.name.equals(other.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) id + name.hashCode();
+    }
+}
