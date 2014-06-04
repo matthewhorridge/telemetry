@@ -44,16 +44,26 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
     }
 
     public XMLTelemetryReceiver(File outputFile) {
+        this(getWriterForFile(outputFile));
+    }
+
+    private static BufferedWriter getWriterForFile(File outputFile) {
+        try {
+            return new BufferedWriter(new FileWriter(outputFile), 10 * 1024 * 1024);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public XMLTelemetryReceiver(Writer writer) {
         try {
             XMLWriterNamespaceManager nsm = new XMLWriterNamespaceManager("");
-            final BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile), 10 * 1024 * 1024);
-            baseWriter = new PrintWriter(bw);
+            this.baseWriter = writer;
             xmlWriter = new TelemetryXMLWriter(baseWriter, nsm, "");
             xmlWriter.startDocument("experiments");
             depth++;
-        }
-        catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

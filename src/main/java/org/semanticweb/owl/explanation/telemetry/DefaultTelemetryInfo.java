@@ -2,6 +2,7 @@ package org.semanticweb.owl.explanation.telemetry;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 /*
  * Copyright (C) 2010, University of Manchester
  *
@@ -33,7 +34,9 @@ import java.util.List;
  */
 public class DefaultTelemetryInfo implements TelemetryInfo {
 
-    private long id = System.nanoTime();
+    private static AtomicLong counter = new AtomicLong();
+
+    private long id = counter.incrementAndGet();
 
     private String name;
 

@@ -1,6 +1,5 @@
 package org.semanticweb.owl.explanation.telemetry;
 
-import java.io.Writer;
 
 /**
  * Author: Matthew Horridge<br>
