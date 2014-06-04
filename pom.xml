@@ -7,6 +7,13 @@
     <name>Telemetry</name>
     <description>A toolkit for recording nested data including CPU times</description>
     <url>https://github.com/matthewhorridge/telemetry</url>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
     <licenses>
         <license>
             <name>GNU LGPL Version 3.0</name>
