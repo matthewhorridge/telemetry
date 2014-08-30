@@ -1,12 +1,25 @@
 package org.semanticweb.owl.explanation.telemetry;
 
-import org.coode.owlapi.owlxml.renderer.OWLXMLObjectRenderer;
-import org.coode.owlapi.owlxml.renderer.OWLXMLWriter;
-import org.coode.xml.XMLWriterNamespaceManager;
-import org.semanticweb.owlapi.model.OWLAxiom;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 
-import java.io.*;
-import java.util.*;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.owlxml.renderer.OWLXMLObjectRenderer;
+import org.semanticweb.owlapi.owlxml.renderer.OWLXMLWriter;
+import org.semanticweb.owlapi.rdf.rdfxml.renderer.XMLWriterNamespaceManager;
 
 /**
  * Author: Matthew Horridge<br>
@@ -58,9 +71,9 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
     public XMLTelemetryReceiver(Writer writer) {
         try {
             XMLWriterNamespaceManager nsm = new XMLWriterNamespaceManager("");
-            this.baseWriter = writer;
+            baseWriter = writer;
             xmlWriter = new TelemetryXMLWriter(baseWriter, nsm, "");
-            xmlWriter.startDocument("experiments");
+            xmlWriter.startDocument(IRI.create("experiments"));
             depth++;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -90,6 +103,7 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
         }
     }
 
+    @Override
     public void beginTransmission(TelemetryInfo info) {
         List<TelemetryTimer> timers = pauseRunningTimers();
         try {
@@ -103,7 +117,7 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
             }
             ignoreNodeStack.push(ignore);
             if (!ignore) {
-                xmlWriter.writeStartElement(info.getName());
+                xmlWriter.writeStartElement(IRI.create(info.getName()));
             }
             depth++;
         }
@@ -115,11 +129,12 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
         }
     }
 
+    @Override
     public void recordMeasurement(TelemetryInfo info, String propertyName, String value) {
         if (propertyName != null && value != null && !isIgnoredTransmission()) {
             List<TelemetryTimer> timers = pauseRunningTimers();
             try {
-                xmlWriter.writeStartElement("measurement");
+                xmlWriter.writeStartElement(IRI.create("measurement"));
                 xmlWriter.writeAttribute("name", propertyName);
                 xmlWriter.writeAttribute("value", value);
                 xmlWriter.writeEndElement();
@@ -137,20 +152,21 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
         return !ignoreNodeStack.isEmpty() && ignoreNodeStack.peek();
     }
 
+    @Override
     public void recordException(TelemetryInfo info, Throwable exception) {
         List<TelemetryTimer> pausedTimers = pauseRunningTimers();
         try {
-            xmlWriter.writeStartElement("exception");
+            xmlWriter.writeStartElement(IRI.create("exception"));
 
-            xmlWriter.writeStartElement("class");
+            xmlWriter.writeStartElement(IRI.create("class"));
             xmlWriter.writeTextContent(exception.getClass().getName());
             xmlWriter.writeEndElement();
 
-            xmlWriter.writeStartElement("message");
+            xmlWriter.writeStartElement(IRI.create("message"));
             xmlWriter.writeTextContent(exception.getMessage());
             xmlWriter.writeEndElement();
 
-            xmlWriter.writeStartElement("stacktrace");
+            xmlWriter.writeStartElement(IRI.create("stacktrace"));
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             exception.printStackTrace(pw);
@@ -168,6 +184,7 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
         }
     }
 
+    @Override
     public void recordObject(TelemetryInfo info, String namePrefix, String nameSuffix, Object object) {
         if (!isIgnoredTransmission()) {
             List<TelemetryTimer> timers = pauseRunningTimers();
@@ -180,7 +197,7 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
         if (!isIgnoredTransmission()) {
             try {
                 boolean writeAsXML = false;
-                xmlWriter.writeStartElement("object");
+                xmlWriter.writeStartElement(IRI.create("object"));
                 xmlWriter.writeAttribute("name", namePrefix);
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 boolean wrapInCDataSection = true;
@@ -230,12 +247,14 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
     }
 
 
+    @Override
     public void recordTiming(TelemetryInfo info, String name, TelemetryTimer telemetryTimer) {
         if (!isIgnoredTransmission()) {
             recordMeasurement(info, name, Long.toString(telemetryTimer.getEllapsedTime()));
         }
     }
 
+    @Override
     public void endTransmission(TelemetryInfo info) {
         List<TelemetryTimer> timers = pauseRunningTimers();
         try {
