@@ -6,7 +6,6 @@ import org.coode.xml.XMLWriter;
 import org.coode.xml.XMLWriterNamespaceManager;
 import org.coode.xml.XMLWriterPreferences;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -109,24 +108,6 @@ public class TelemetryXMLWriter implements XMLWriter {
 
     public void setEncoding(String encoding) {
         this.encoding = encoding;
-    }
-
-    private boolean isValidQName(String name) {
-        if(name == null) {
-            return false;
-        }
-        int colonIndex = name.indexOf(":");
-        boolean valid = false;
-        if (colonIndex == -1) {
-            valid = OWL2Datatype.XSD_NCNAME.getPattern().matcher(name).matches();
-        }
-        else {
-            valid = OWL2Datatype.XSD_NCNAME.getPattern().matcher(name.substring(0, colonIndex - 1)).matches();
-            if (valid) {
-                valid = OWL2Datatype.XSD_NAME.getPattern().matcher(name.substring(colonIndex + 1)).matches();
-            }
-        }
-        return valid;
     }
 
     @Override
