@@ -1,15 +1,6 @@
 package org.semanticweb.owl.explanation.telemetry;
 
-<<<<<<< HEAD
-import org.coode.string.EscapeUtils;
-import org.coode.xml.IllegalElementNameException;
-import org.coode.xml.XMLWriter;
-import org.coode.xml.XMLWriterNamespaceManager;
-import org.coode.xml.XMLWriterPreferences;
 import org.semanticweb.owlapi.model.IRI;
-
-=======
->>>>>>> c08b00e3640db3d6a581340f3f900ff600114b70
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
