@@ -1,5 +1,6 @@
 package org.semanticweb.owl.explanation.telemetry;
 
+<<<<<<< HEAD
 import org.coode.string.EscapeUtils;
 import org.coode.xml.IllegalElementNameException;
 import org.coode.xml.XMLWriter;
@@ -7,10 +8,29 @@ import org.coode.xml.XMLWriterNamespaceManager;
 import org.coode.xml.XMLWriterPreferences;
 import org.semanticweb.owlapi.model.IRI;
 
+=======
+>>>>>>> c08b00e3640db3d6a581340f3f900ff600114b70
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+import java.util.StringTokenizer;
+
+import org.semanticweb.owlapi.io.XMLUtils;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException;
+import org.semanticweb.owlapi.rdf.rdfxml.renderer.XMLWriter;
+import org.semanticweb.owlapi.rdf.rdfxml.renderer.XMLWriterNamespaceManager;
+import org.semanticweb.owlapi.rdf.rdfxml.renderer.XMLWriterPreferences;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
+
+import com.google.common.collect.Lists;
 
 /**
  * Author: Matthew Horridge<br>
@@ -42,9 +62,9 @@ public class TelemetryXMLWriter implements XMLWriter {
 
     public TelemetryXMLWriter(Writer writer, XMLWriterNamespaceManager nsm, String xmlBase) {
         this.writer = writer;
-        this.xmlWriterNamespaceManager = nsm;
+        xmlWriterNamespaceManager = nsm;
         this.xmlBase = xmlBase;
-        this.xmlBaseURI = URI.create(xmlBase);
+        xmlBaseURI = URI.create(xmlBase);
         // no need to set it to UTF-8: it's supposed to be the default encoding for XML.
         //Must be set correctly for the Writer anyway, or bugs will ensue.
         //this.encoding = "UTF-8";
@@ -54,7 +74,8 @@ public class TelemetryXMLWriter implements XMLWriter {
 
 
     private void setupEntities() {
-        List<String> namespaces = new ArrayList<String>(xmlWriterNamespaceManager.getNamespaces());
+        List<String> namespaces = Lists.newArrayList(xmlWriterNamespaceManager
+                .getNamespaces());
         Collections.sort(namespaces, new StringLengthOnlyComparator());
         entities = new LinkedHashMap<String, String>();
         for (String curNamespace : namespaces) {
@@ -106,6 +127,7 @@ public class TelemetryXMLWriter implements XMLWriter {
     }
 
 
+    @Override
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
@@ -116,13 +138,6 @@ public class TelemetryXMLWriter implements XMLWriter {
             XMLElement element = elementStack.peek();
             element.setWrapAttributes(b);
         }
-    }
-
-
-
-    @Override
-    public void writeStartElement(String name) throws IOException {
-        writeStartElement(IRI.create(name));
     }
 
     @Override
@@ -233,17 +248,12 @@ public class TelemetryXMLWriter implements XMLWriter {
             writer.write("    <!ENTITY ");
             writer.write(entity);
             writer.write(" \"");
-            entityVal = EscapeUtils.escapeXML(entityVal);
+            entityVal = XMLUtils.escapeXML(entityVal);
             entityVal = entityVal.replace("%", PERCENT_ENTITY);
             writer.write(entityVal);
             writer.write("\" >\n");
         }
         writer.write("]>\n\n\n");
-    }
-
-    @Override
-    public void startDocument(String rootElementName) throws IOException {
-        startDocument(IRI.create(rootElementName));
     }
 
     @Override
@@ -258,7 +268,8 @@ public class TelemetryXMLWriter implements XMLWriter {
 
     private static final class StringLengthOnlyComparator implements
 			Comparator<String> {
-		public int compare(String o1, String o2) {
+		@Override
+        public int compare(String o1, String o2) {
 		    // Shortest string first
 		    return o1.length() - o2.length();
 		}
@@ -318,7 +329,7 @@ public class TelemetryXMLWriter implements XMLWriter {
 
         public void setXMLContent(String content) {
             textContent = content;
-            this.escape = false;
+            escape = false;
         }
 
 
@@ -401,10 +412,10 @@ public class TelemetryXMLWriter implements XMLWriter {
             writer.write('=');
             writer.write('"');
             if (XMLWriterPreferences.getInstance().isUseNamespaceEntities()) {
-                writer.write(swapForEntity(EscapeUtils.escapeXML(val)));
+                writer.write(swapForEntity(XMLUtils.escapeXML(val)));
             }
             else {
-                writer.write(EscapeUtils.escapeXML(val));
+                writer.write(XMLUtils.escapeXML(val));
             }
             writer.write('"');
         }
@@ -430,7 +441,7 @@ public class TelemetryXMLWriter implements XMLWriter {
             if (textContent != null) {
                 if (!cdata) {
                     if (escape) {
-                        writer.write(EscapeUtils.escapeXML(textContent));
+                        writer.write(XMLUtils.escapeXML(textContent));
                     }
                     else {
                         writer.write(textContent);
