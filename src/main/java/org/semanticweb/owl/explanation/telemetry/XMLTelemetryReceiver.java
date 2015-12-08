@@ -69,23 +69,18 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
     }
 
     public XMLTelemetryReceiver(Writer writer) {
-        try {
-            XMLWriterNamespaceManager nsm = new XMLWriterNamespaceManager("");
-            baseWriter = writer;
-            xmlWriter = new TelemetryXMLWriter(baseWriter, nsm, "");
-            xmlWriter.startDocument(IRI.create("experiments"));
-            depth++;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        XMLWriterNamespaceManager nsm = new XMLWriterNamespaceManager("");
+        baseWriter = writer;
+        xmlWriter = new TelemetryXMLWriter(baseWriter, nsm, "");
+        xmlWriter.startDocument(IRI.create("experiments"));
+        depth++;
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 try {
                     xmlWriter.endDocument();
                     baseWriter.close();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -109,10 +104,10 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
         try {
             telemetryNodeStack.push(info);
             boolean ignore = false;
-            if(!ignoreNodeStack.isEmpty()) {
+            if (!ignoreNodeStack.isEmpty()) {
                 ignore = ignoreNodeStack.peek();
             }
-            if(!ignore) {
+            if (!ignore) {
                 ignore = ignoredNodeNames.contains(info.getName());
             }
             ignoreNodeStack.push(ignore);
@@ -120,11 +115,7 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
                 xmlWriter.writeStartElement(IRI.create(info.getName()));
             }
             depth++;
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
+        } finally {
             unpauseTimers(timers);
         }
     }
@@ -138,11 +129,7 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
                 xmlWriter.writeAttribute("name", propertyName);
                 xmlWriter.writeAttribute("value", value);
                 xmlWriter.writeEndElement();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-            finally {
+            } finally {
                 unpauseTimers(timers);
             }
         }
@@ -175,11 +162,7 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
             xmlWriter.writeEndElement();
 
             xmlWriter.writeEndElement();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
+        } finally {
             unpauseTimers(pausedTimers);
         }
     }
@@ -212,10 +195,11 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
                         writeAsXML = true;
                     }
                 }
-                else if(object instanceof OWLAxiom) {
+                else if (object instanceof OWLAxiom) {
                     OWLAxiom ax = (OWLAxiom) object;
                     OutputStreamWriter osw = new OutputStreamWriter(bos);
-                    OWLXMLWriter writer = new OWLXMLWriter(osw, null);
+                    PrintWriter printWriter = new PrintWriter(osw);
+                    OWLXMLWriter writer = new OWLXMLWriter(printWriter, null);
                     OWLXMLObjectRenderer renderer = new OWLXMLObjectRenderer(writer);
                     ax.accept(renderer);
                     osw.flush();
@@ -232,15 +216,14 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
                 if (wrapInCDataSection) {
                     xmlWriter.writeCData(bos.toString());
                 }
-                else if(writeAsXML) {
+                else if (writeAsXML) {
                     xmlWriter.writeXMLContent(bos.toString());
                 }
                 else {
                     xmlWriter.writeTextContent(bos.toString());
                 }
                 xmlWriter.writeEndElement();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -264,18 +247,14 @@ public class XMLTelemetryReceiver implements TelemetryReceiver {
             if (!telemetryNodeStack.isEmpty()) {
                 telemetryNodeStack.pop();
             }
-            if(!ignoreNodeStack.isEmpty()) {
+            if (!ignoreNodeStack.isEmpty()) {
                 ignoreNodeStack.pop();
             }
             depth--;
             if (depth == 0) {
                 xmlWriter.endDocument();
             }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
+        } finally {
             unpauseTimers(timers);
         }
     }

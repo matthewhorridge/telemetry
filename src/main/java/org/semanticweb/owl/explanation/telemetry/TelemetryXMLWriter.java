@@ -22,6 +22,8 @@ import org.semanticweb.owlapi.rdf.rdfxml.renderer.XMLWriterPreferences;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Author: Matthew Horridge<br>
@@ -50,6 +52,8 @@ public class TelemetryXMLWriter implements XMLWriter {
     private boolean preambleWritten;
 
     private static final String PERCENT_ENTITY = "&#37;";
+
+    private static final Logger logger = LoggerFactory.getLogger(TelemetryXMLWriter.class);
 
     public TelemetryXMLWriter(Writer writer, XMLWriterNamespaceManager nsm, String xmlBase) {
         this.writer = writer;
@@ -132,11 +136,15 @@ public class TelemetryXMLWriter implements XMLWriter {
     }
 
     @Override
-    public void writeEndElement() throws IOException {
+    public void writeEndElement() {
         // Pop the element off the stack and write it out
         if (!elementStack.isEmpty()) {
             XMLElement element = elementStack.pop();
-            element.writeElementEnd();
+            try {
+                element.writeElementEnd();
+            } catch (IOException e) {
+                logger.error("An error occurred whilst writing the closing element: {}", e.getMessage(), e);
+            }
         }
     }
 
@@ -166,64 +174,80 @@ public class TelemetryXMLWriter implements XMLWriter {
 
 
     @Override
-    public void startDocument(IRI rootElement) throws IOException {
-        String encodingString = "";
-        if (encoding.length() > 0) {
-            encodingString = " encoding=\"" + encoding + "\"";
-        }
-        writer.write("<?xml version=\"1.0\"" + encodingString + "?>\n");
-        if (XMLWriterPreferences.getInstance().isUseNamespaceEntities()) {
-            writeEntities(rootElement);
-        }
-        preambleWritten = true;
-        while (!elementStack.isEmpty()) {
-            elementStack.pop().writeElementStart(true);
-        }
-        writeStartElement(rootElement);
-        setWrapAttributes(true);
-        String defaultNamespace = xmlWriterNamespaceManager.getDefaultNamespace();
-        if (defaultNamespace.length() > 0) {
-            writeAttribute("xmlns", defaultNamespace);
-        }
-        if (xmlBase.length() != 0) {
-            writeAttribute("xml:base", xmlBase);
-        }
-        for (String curPrefix : xmlWriterNamespaceManager.getPrefixes()) {
-            if (curPrefix.length() > 0) {
-                writeAttribute("xmlns:" + curPrefix, xmlWriterNamespaceManager.getNamespaceForPrefix(curPrefix));
+    public void startDocument(IRI rootElement) {
+        try {
+            String encodingString = "";
+            if (encoding.length() > 0) {
+                encodingString = " encoding=\"" + encoding + "\"";
             }
+            writer.write("<?xml version=\"1.0\"" + encodingString + "?>\n");
+            if (XMLWriterPreferences.getInstance().isUseNamespaceEntities()) {
+                writeEntities(rootElement);
+            }
+            preambleWritten = true;
+            while (!elementStack.isEmpty()) {
+                elementStack.pop().writeElementStart(true);
+            }
+            writeStartElement(rootElement);
+            setWrapAttributes(true);
+            String defaultNamespace = xmlWriterNamespaceManager.getDefaultNamespace();
+            if (defaultNamespace.length() > 0) {
+                writeAttribute("xmlns", defaultNamespace);
+            }
+            if (xmlBase.length() != 0) {
+                writeAttribute("xml:base", xmlBase);
+            }
+            for (String curPrefix : xmlWriterNamespaceManager.getPrefixes()) {
+                if (curPrefix.length() > 0) {
+                    writeAttribute("xmlns:" + curPrefix, xmlWriterNamespaceManager.getNamespaceForPrefix(curPrefix));
+                }
+            }
+        } catch (IOException e) {
+
         }
     }
 
     @Override
-    public void writeStartElement(IRI name) throws IOException, IllegalElementNameException {
+    public void writeStartElement(IRI name) throws IllegalElementNameException {
         XMLElement element = new XMLElement(name, elementStack.size());
         if (!elementStack.isEmpty()) {
             XMLElement topElement = elementStack.peek();
             if (topElement != null) {
-                topElement.writeElementStart(false);
+                try {
+                    topElement.writeElementStart(false);
+                } catch (IOException e) {
+                    logger.error("An error occurred whilst writing the element: {}", e.getMessage(), e);
+                }
             }
         }
         elementStack.push(element);
     }
 
     @Override
-    public void writeAttribute(IRI attr, String val) throws IOException {
+    public void writeAttribute(IRI attr, String val) {
 
     }
 
     @Override
-    public void writeComment(String commentText) throws IOException {
+    public void writeComment(String commentText) {
         XMLElement element = new XMLElement(null, elementStack.size());
         element.setText("<!-- " + commentText.replaceAll("--","&#45;&#45;") + " -->", false);
         if (!elementStack.isEmpty()) {
             XMLElement topElement = elementStack.peek();
             if (topElement != null) {
-                topElement.writeElementStart(false);
+                try {
+                    topElement.writeElementStart(false);
+                } catch (IOException e) {
+                    logger.error("An error occurred whilst writing an element: {}", e.getMessage(), e);
+                }
             }
         }
         if (preambleWritten) {
-            element.writeElementStart(true);
+            try {
+                element.writeElementStart(true);
+            } catch (IOException e) {
+                logger.error("An error occurred whilst writing an element: {}", e.getMessage(), e);
+            }
         }
         else {
             elementStack.push(element);
@@ -248,12 +272,16 @@ public class TelemetryXMLWriter implements XMLWriter {
     }
 
     @Override
-    public void endDocument() throws IOException {
+    public void endDocument() {
         // Pop of each element
         while (!elementStack.isEmpty()) {
             writeEndElement();
         }
-        writer.flush();
+        try {
+            writer.flush();
+        } catch (IOException e) {
+            logger.error("An error occurred whilst flushing the stream: {}", e.getMessage(), e);
+        }
     }
 
 
